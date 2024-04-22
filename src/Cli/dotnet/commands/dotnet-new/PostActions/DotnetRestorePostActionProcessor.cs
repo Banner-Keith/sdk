@@ -25,7 +25,7 @@ namespace Microsoft.DotNet.Tools.New.PostActionProcessors
         protected override bool ProcessInternal(IEngineEnvironmentSettings environment, IPostAction actionConfig, ICreationEffects creationEffects, ICreationResult templateCreationResult, string outputBasePath)
         {
             bool allSucceeded = true;
-            IEnumerable<string> targetFiles = GetConfiguredFiles(actionConfig.Args, creationEffects, "files", outputBasePath);
+            IEnumerable<string>? targetFiles = GetConfiguredFiles(actionConfig.Args, creationEffects, "files", outputBasePath, templateCreationResult);
 
             if (!targetFiles.Any())
             {

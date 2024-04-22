@@ -29,10 +29,23 @@ namespace Microsoft.TemplateEngine.Cli.PostActionProcessors
         /// <summary>
         /// Gets absolute normalized path for a target matching <paramref name="sourcePathGlob"/>.
         /// </summary>
-        protected static IReadOnlyList<string> GetTargetForSource(ICreationEffects2 creationEffects, string sourcePathGlob, string outputBasePath)
+        protected static IReadOnlyList<string> GetTargetForSource(
+            ICreationEffects2 creationEffects,
+            string sourcePathGlob,
+            string outputBasePath,
+            ICreationResult templateCreationResult)
         {
-            Glob g = Glob.Parse(sourcePathGlob);
             List<string> results = new();
+            if (int.TryParse(sourcePathGlob, out int primaryOutputIndex))
+            {
+                ICreationPath primaryOutputRelativePath = templateCreationResult.PrimaryOutputs[primaryOutputIndex];
+
+                results.Add(Path.GetFullPath(primaryOutputRelativePath.Path, outputBasePath));
+
+                return results;
+            }
+
+            Glob g = Glob.Parse(sourcePathGlob);
 
             if (creationEffects.FileChanges != null)
             {
@@ -52,6 +65,7 @@ namespace Microsoft.TemplateEngine.Cli.PostActionProcessors
             ICreationEffects creationEffects,
             string argName,
             string outputBasePath,
+            ICreationResult templateCreationResult,
             Func<string, bool>? matchCriteria = null)
         {
             if (creationEffects is not ICreationEffects2 creationEffects2)
@@ -76,9 +90,9 @@ namespace Microsoft.TemplateEngine.Cli.PostActionProcessors
 
             IReadOnlyList<string> ProcessPaths(IReadOnlyList<string> paths)
             {
-                matchCriteria ??= p => true;
+                matchCriteria ??= _ => true;
                 return paths
-                    .SelectMany(t => GetTargetForSource(creationEffects2, t, outputBasePath))
+                    .SelectMany(t => GetTargetForSource(creationEffects2, t, outputBasePath, templateCreationResult))
                     .Where(t => matchCriteria(t))
                     .ToArray();
             }

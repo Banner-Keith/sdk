@@ -42,7 +42,7 @@ namespace Microsoft.DotNet.Tools.New.PostActionProcessors
 
         protected override bool ProcessInternal(IEngineEnvironmentSettings environment, IPostAction action, ICreationEffects creationEffects, ICreationResult templateCreationResult, string outputBasePath)
         {
-            IReadOnlyList<string>? projectsToProcess = GetConfiguredFiles(action.Args, creationEffects, "targetFiles", outputBasePath);
+            IReadOnlyList<string>? projectsToProcess = GetConfiguredFiles(action.Args, creationEffects, "targetFiles", outputBasePath, templateCreationResult: templateCreationResult);
 
             if (!projectsToProcess.Any())
             {
@@ -88,7 +88,7 @@ namespace Microsoft.DotNet.Tools.New.PostActionProcessors
             bool success = true;
             foreach (string projectFile in projectsToProcess)
             {
-                success &= AddReference(action, projectFile, outputBasePath, creationEffects);
+                success &= AddReference(action, projectFile, outputBasePath, creationEffects, templateCreationResult);
 
                 if (!success)
                 {
@@ -119,7 +119,7 @@ namespace Microsoft.DotNet.Tools.New.PostActionProcessors
             return foundFiles ?? [];
         }
 
-        private bool AddReference(IPostAction actionConfig, string projectFile, string outputBasePath, ICreationEffects creationEffects)
+        private bool AddReference(IPostAction actionConfig, string projectFile, string outputBasePath, ICreationEffects creationEffects, ICreationResult templateCreationResult)
         {
             if (actionConfig.Args == null || !actionConfig.Args.TryGetValue("reference", out string? referenceToAdd))
             {
@@ -136,7 +136,7 @@ namespace Microsoft.DotNet.Tools.New.PostActionProcessors
             if (string.Equals(referenceType, "project", StringComparison.OrdinalIgnoreCase))
             {
                 // replace the referenced project file's name in case it has been renamed
-                string? referenceNameChange = GetTargetForSource((ICreationEffects2)creationEffects, referenceToAdd, outputBasePath).SingleOrDefault();
+                string? referenceNameChange = GetTargetForSource((ICreationEffects2)creationEffects, referenceToAdd, outputBasePath, templateCreationResult).SingleOrDefault();
                 string relativeProjectReference = referenceNameChange ?? referenceToAdd;
 
                 referenceToAdd = Path.GetFullPath(relativeProjectReference, outputBasePath);

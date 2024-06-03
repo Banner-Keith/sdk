@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 using System.Text.Json.Nodes;
@@ -516,23 +516,24 @@ namespace Microsoft.DotNet.Cli.New.IntegrationTests
                 .NotHaveStdErr();
         }
 
-        [Fact]
-        public void AddProjectReference_Basic()
+        [Theory]
+        [InlineData("PostActions/AddProjectReference/Basic", "TestAssets.PostActions.AddProjectReference.Basic")]
+        [InlineData("PostActions/AddProjectReference/BasicByIndex", "TestAssets.PostActions.AddProjectReference.BasicByIndex")]
+        public void AddProjectReference_Basic(string templatePartLocation, string templateName)
         {
-            string templateLocation = _testAssetsManager.CopyTestAsset("PostActions/AddProjectReference/Basic", testAssetSubdirectory: DotnetNewTestTemplatesBasePath).WithSource().Path;
-            string expectedTemplateName = "TestAssets.PostActions.AddProjectReference.Basic";
+            string templateLocation = _testAssetsManager.CopyTestAsset(templatePartLocation, testAssetSubdirectory: DotnetNewTestTemplatesBasePath).WithSource().Path;
             string home = CreateTemporaryFolder(folderName: "Home");
             string workingDirectory = CreateTemporaryFolder();
             InstallTestTemplate(templateLocation, _log, home, workingDirectory);
 
-            new DotnetNewCommand(_log, expectedTemplateName)
+            new DotnetNewCommand(_log, templateName)
                 .WithCustomHive(home)
                 .WithWorkingDirectory(workingDirectory)
                 .Execute()
                 .Should()
                 .ExitWith(0)
                 .And.NotHaveStdErr()
-                .And.HaveStdOutContaining($"The template \"{expectedTemplateName}\" was created successfully.")
+                .And.HaveStdOutContaining($"The template \"{templateName}\" was created successfully.")
                 .And.HaveStdOutContaining("Successfully added");
 
             new DotnetBuildCommand(_log, "Project1/Project1.csproj")
